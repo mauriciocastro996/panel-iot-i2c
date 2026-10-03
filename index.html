@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard IoT - Monitoreo y Control</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; text-align: center; padding: 20px; color: #333; }
+        .panel { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); max-width: 400px; margin: 20px auto; }
+        h1 { color: #2c3e50; }
+        .sensor-data { font-size: 24px; font-weight: bold; color: #2980b9; margin: 10px 0; }
+        button { background-color: #3498db; color: white; border: none; padding: 10px 20px; margin: 10px; border-radius: 5px; font-size: 16px; cursor: pointer; transition: 0.3s; }
+        button:hover { background-color: #2980b9; }
+        .btn-off { background-color: #e74c3c; }
+        .btn-off:hover { background-color: #c0392b; }
+        .btn-green { background-color: #27ae60; }
+        .btn-green:hover { background-color: #2ecc71; }
+    </style>
+</head>
+<body>
+
+    <h1>Panel de Control IoT</h1>
+
+    <div class="panel">
+        <h2>Sensores en Tiempo Real</h2>
+        <p>Luz Ambiental: <span id="luz" class="sensor-data">-- lx</span></p>
+        <p>Temperatura: <span id="temp" class="sensor-data">-- °C</span></p>
+    </div>
+
+    <div class="panel">
+        <h2>Actuador (LED)</h2>
+        <button onclick="controlarLED(true)">Encender LED</button>
+        <button class="btn-off" onclick="controlarLED(false)">Apagar LED</button>
+    </div>
+
+    <div class="panel">
+        <h2>Control de Pantalla LCD</h2>
+        <button class="btn-green" onclick="controlarLCD('hola')">Mostrar "Hola"</button>
+        <button onclick="controlarLCD('normal')">Mostrar Sensores</button>
+    </div>
+
+    <!-- Firebase SDK Modular -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+        import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAOxFZRKHsLFtuh1N0i_2u9D50s2-qrbpI",
+            authDomain: "proyectointarq2.firebaseapp.com",
+            databaseURL: "https://proyectointarq2-default-rtdb.firebaseio.com",
+            projectId: "proyectointarq2",
+            storageBucket: "proyectointarq2.firebasestorage.app",
+            messagingSenderId: "179095966253",
+            appId: "1:179095966253:web:7c4a0b5486a5c5b65b1ea4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // Escuchar datos de los sensores en tiempo real
+        onValue(ref(db, 'sensores'), (snapshot) => {
+            const data = snapshot.val();
+            if(data) {
+                document.getElementById('temp').innerText = data.temperatura + " °C";
+                document.getElementById('luz').innerText = data.luz + " lx";
+            }
+        });
+
+        // Funciones globales para los botones
+        window.controlarLED = function(estado) {
+            set(ref(db, 'comandos/led'), estado);
+        }
+
+        window.controlarLCD = function(modo) {
+            set(ref(db, 'comandos/lcd'), modo);
+        }
+    </script>
+</body>
+</html>
